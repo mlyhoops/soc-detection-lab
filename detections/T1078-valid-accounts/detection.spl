@@ -1,0 +1,2 @@
+| comment "Detection SPL for T1078 — Valid Accounts"
+| comment "Query will be built and validated during the detection session."

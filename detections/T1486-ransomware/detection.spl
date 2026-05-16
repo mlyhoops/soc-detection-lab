@@ -1,0 +1,2 @@
+| comment "Detection SPL for T1486 — Data Encrypted for Impact"
+| comment "Query will be built and validated during the detection session."

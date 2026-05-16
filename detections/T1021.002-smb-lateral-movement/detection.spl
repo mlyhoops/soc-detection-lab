@@ -1,0 +1,2 @@
+| comment "Detection SPL for T1021.002 — SMB/Windows Admin Shares"
+| comment "Query will be built and validated during the detection session."

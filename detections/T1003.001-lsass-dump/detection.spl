@@ -1,0 +1,2 @@
+| comment "Detection SPL for T1003.001 — LSASS Memory"
+| comment "Query will be built and validated during the detection session."
