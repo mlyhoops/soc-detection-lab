@@ -33,3 +33,9 @@ variable "snippet_storage" {
   type        = string
   default     = "local"
 }
+
+variable "vm_bridge_lab" {
+  description = "Isolated lab network bridge (vmbr1, 10.10.10.0/24, NAT to vmbr0)"
+  type        = string
+  default     = "vmbr1"
+}
