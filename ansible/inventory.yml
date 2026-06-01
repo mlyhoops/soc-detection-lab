@@ -1,0 +1,16 @@
+all:
+  children:
+    domain_controllers:
+      hosts:
+        dc01:
+          ansible_host: 10.10.10.10
+    workstations:
+      hosts:
+        win11-01:
+          ansible_host: 10.10.10.11
+        win11-02:
+          ansible_host: 10.10.10.12
+    windows:
+      children:
+        domain_controllers:
+        workstations:

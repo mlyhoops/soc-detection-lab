@@ -28,3 +28,7 @@ terraform.rc
 
 # NOTE: .terraform.lock.hcl is intentionally NOT ignored.
 # It pins provider versions and should be committed to version control.
+
+# Ansible secrets and large binary installers
+ansible/group_vars/secrets.yml
+ansible/roles/splunk_uf/files/*.msi

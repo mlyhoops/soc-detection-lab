@@ -1,0 +1,53 @@
+---
+# splunk_uf/files/ must contain the Splunk UF MSI before running this role.
+# Download from splunk.com (free account) and place at:
+#   ansible/roles/splunk_uf/files/splunkforwarder.msi
+
+- name: Copy Splunk UF installer
+  ansible.windows.win_copy:
+    src: splunkforwarder.msi
+    dest: C:\Temp\splunkforwarder.msi
+
+- name: Install Splunk Universal Forwarder
+  ansible.windows.win_package:
+    path: C:\Temp\splunkforwarder.msi
+    state: present
+    arguments: >-
+      RECEIVING_INDEXER="192.168.0.53:9997"
+      WINEVENTLOG_SEC_ENABLE=1
+      WINEVENTLOG_SYS_ENABLE=1
+      WINEVENTLOG_APP_ENABLE=1
+      AGREETOLICENSE=Yes
+      /quiet
+
+- name: Wait for Splunk UF service to appear
+  ansible.windows.win_shell: |
+    $svc = Get-Service -Name SplunkForwarder -ErrorAction SilentlyContinue
+    if (-not $svc) { exit 1 }
+  retries: 10
+  delay: 5
+  register: uf_svc
+  until: uf_svc.rc == 0
+
+- name: Configure Sysmon log forwarding
+  ansible.windows.win_shell: |
+    $inputs = "C:\Program Files\SplunkUniversalForwarder\etc\system\local\inputs.conf"
+    $content = @"
+[WinEventLog://Microsoft-Windows-Sysmon/Operational]
+index = sysmon
+disabled = false
+renderXml = true
+"@
+    Set-Content -Path $inputs -Value $content -Force
+
+- name: Set forwarding target and restart
+  ansible.windows.win_shell: |
+    & "C:\Program Files\SplunkUniversalForwarder\bin\splunk.exe" add forward-server 192.168.0.53:9997 -auth admin:changeme
+    Restart-Service SplunkForwarder
+  failed_when: false
+
+- name: Ensure SplunkForwarder starts on boot
+  ansible.windows.win_service:
+    name: SplunkForwarder
+    start_mode: auto
+    state: started

@@ -1,0 +1,27 @@
+---
+# Run individual plays with: ansible-playbook site.yml --tags <tag>
+# Run everything:            ansible-playbook site.yml -e @group_vars/secrets.yml
+
+- name: Promote dc01 to domain controller
+  hosts: domain_controllers
+  tags: [dc_promote]
+  roles:
+    - dc_promote
+
+- name: Join workstations to domain
+  hosts: workstations
+  tags: [domain_join]
+  roles:
+    - domain_join
+
+- name: Deploy Sysmon on all Windows hosts
+  hosts: windows
+  tags: [sysmon]
+  roles:
+    - sysmon
+
+- name: Deploy Splunk Universal Forwarder on all Windows hosts
+  hosts: windows
+  tags: [splunk_uf]
+  roles:
+    - splunk_uf

@@ -1,0 +1,39 @@
+---
+- name: Install AD DS and DNS roles
+  ansible.windows.win_shell: |
+    Install-WindowsFeature -Name AD-Domain-Services, DNS -IncludeManagementTools
+  register: ad_install
+  changed_when: "'Success' in ad_install.stdout"
+
+- name: Promote to domain controller (creates lab.local forest)
+  ansible.windows.win_shell: |
+    Import-Module ADDSDeployment
+    Install-ADDSForest `
+      -DomainName "lab.local" `
+      -DomainNetbiosName "LAB" `
+      -SafeModeAdministratorPassword (ConvertTo-SecureString "{{ dsrm_password }}" -AsPlainText -Force) `
+      -InstallDns:$true `
+      -Force:$true `
+      -NoRebootOnCompletion:$false
+  register: dc_promote
+  failed_when: false
+
+- name: Wait for dc01 to come back after reboot
+  ansible.builtin.wait_for_connection:
+    delay: 60
+    timeout: 300
+
+- name: Configure DHCP scope for vmbr1 (10.10.10.100-200)
+  ansible.windows.win_shell: |
+    Install-WindowsFeature -Name DHCP -IncludeManagementTools
+    Add-DhcpServerv4Scope -Name "LabScope" -StartRange 10.10.10.100 -EndRange 10.10.10.200 -SubnetMask 255.255.255.0
+    Set-DhcpServerv4OptionValue -ScopeId 10.10.10.0 -Router 10.10.10.1 -DnsServer 10.10.10.10
+    Add-DhcpServerInDC -DnsName dc01.lab.local -IPAddress 10.10.10.10
+    Restart-Service DHCPServer
+
+- name: Create domain admin account for Ansible
+  ansible.windows.win_shell: |
+    $pw = ConvertTo-SecureString "{{ windows_admin_password }}" -AsPlainText -Force
+    New-ADUser -Name "ansible" -AccountPassword $pw -Enabled $true -PasswordNeverExpires $true
+    Add-ADGroupMember -Identity "Domain Admins" -Members "ansible"
+  failed_when: false

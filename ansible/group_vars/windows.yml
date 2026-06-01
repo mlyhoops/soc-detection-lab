@@ -1,0 +1,9 @@
+# WinRM connection settings for all Windows hosts.
+# Passwords are in group_vars/secrets.yml (gitignored — never commit that file).
+ansible_connection: winrm
+ansible_winrm_transport: basic
+ansible_winrm_scheme: http
+ansible_port: 5985
+ansible_winrm_server_cert_validation: ignore
+ansible_user: Administrator
+ansible_password: "{{ windows_admin_password }}"
