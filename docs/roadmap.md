@@ -23,17 +23,18 @@ Session-by-session build plan. Each session has a defined scope and produces a m
 
 ---
 
-## Session 2 — Isolated Network + Windows Domain Controller ⬜ Pending
+## Session 2 — Isolated Network + Windows Domain Controller ✅ Complete
 
 **Goal:** Create the isolated lab network and provision the domain controller.
 
-- [ ] Destroy ubuntu-poc (`terraform destroy -target proxmox_virtual_environment_vm.ubuntu_poc`)
-- [ ] Create vmbr1 bridge on Proxmox host (10.10.10.0/24)
-- [ ] Configure NAT from vmbr1 to vmbr0 on the Proxmox host
-- [ ] Add `vm_bridge_lab` variable pointing to vmbr1
-- [ ] Download Windows Server 2022 evaluation ISO to Proxmox storage
-- [ ] Provision dc01 VM (2 vCPU / 4 GB / 60 GB, static IP 10.10.10.10, vmbr1)
-- [ ] Validate dc01 is reachable from webserv1 via the lab network
+- [x] Destroy ubuntu-poc (skipped — state was empty; POC validated in Session 1)
+- [x] Create vmbr1 bridge on Proxmox host (10.10.10.0/24)
+- [x] Configure NAT from vmbr1 to vmbr0 on the Proxmox host
+- [x] Add `vm_bridge_lab` variable pointing to vmbr1
+- [x] Download Windows Server 2022 evaluation ISO to Proxmox storage
+- [x] Provision dc01 VM (2 vCPU / 4 GB / 60 GB, static IP 10.10.10.10, vmbr1)
+- [x] Validate dc01 is reachable from webserv1 via the lab network (ARP REACHABLE; ICMP blocked by Windows Firewall — expected)
+- [x] Add persistent 10.10.10.0/24 route on webserv1 via netplan
 
 ---
 
@@ -139,7 +140,7 @@ Session-by-session build plan. Each session has a defined scope and produces a m
 | Session | Focus | Status |
 |---|---|---|
 | 1 | Terraform scaffold, provider auth, POC VM, project docs | ✅ Complete |
-| 2 | vmbr1 isolated network, dc01 VM | ⬜ Pending |
+| 2 | vmbr1 isolated network, dc01 VM | ✅ Complete |
 | 3 | Domain setup, Sysmon + UF via Ansible | ⬜ Pending |
 | 4 | Kali VM, Atomic Red Team, end-to-end validation | ⬜ Pending |
 | 5 | Detection: T1078 Valid Accounts | ⬜ Pending |
