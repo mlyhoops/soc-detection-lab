@@ -1,2 +1,9 @@
-| comment "Detection SPL for T1078 — Valid Accounts"
-| comment "Query will be built and validated during the detection session."
+index=wineventlog EventCode=4625
+    Logon_Type=3
+    (Status="0xC000006D" OR Status="0xC000006A")
+| bucket _time span=5m
+| stats count dc(Account_Name) as unique_accounts values(Account_Name) as accounts by _time, Source_Network_Address, host
+| where count > 10
+| eval window=strftime(_time,"%Y-%m-%d %H:%M")
+| table window, Source_Network_Address, host, count, unique_accounts, accounts
+| sort - count

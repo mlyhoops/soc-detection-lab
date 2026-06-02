@@ -1,2 +1,10 @@
-| comment "Detection SPL for T1003.001 — LSASS Memory"
-| comment "Query will be built and validated during the detection session."
+index=sysmon EventCode=10
+    TargetImage="*\\lsass.exe"
+    NOT (SourceImage="*\\MsMpEng.exe"
+         OR SourceImage="*\\svchost.exe"
+         OR SourceImage="*\\wininit.exe"
+         OR SourceImage="*\\csrss.exe"
+         OR SourceImage="*\\lsass.exe")
+| stats count values(GrantedAccess) as AccessMask by _time, host, SourceImage, SourceProcessId
+| table _time, host, SourceImage, SourceProcessId, AccessMask, count
+| sort - _time

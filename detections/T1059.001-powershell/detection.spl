@@ -1,2 +1,10 @@
-| comment "Detection SPL for T1059.001 — PowerShell"
-| comment "Query will be built and validated during the detection session."
+index=sysmon EventCode=1
+    (Image="*\\powershell.exe" OR Image="*\\pwsh.exe")
+    (CommandLine="* -enc *" OR CommandLine="* -EncodedCommand *"
+     OR CommandLine="* -exec bypass*" OR CommandLine="* -nop *"
+     OR CommandLine="*IEX*" OR CommandLine="*Invoke-Expression*"
+     OR CommandLine="*DownloadString*" OR CommandLine="*WebClient*")
+| stats count min(_time) as first_seen max(_time) as last_seen values(CommandLine) as CommandLines by host, User
+| where count > 0
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S"), last_seen=strftime(last_seen,"%Y-%m-%d %H:%M:%S")
+| table host, User, count, first_seen, last_seen, CommandLines

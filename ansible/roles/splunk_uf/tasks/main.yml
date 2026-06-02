@@ -51,11 +51,12 @@
       [WinEventLog://Microsoft-Windows-Sysmon/Operational]
       index = sysmon
       disabled = false
-      renderXml = true
+      renderXml = false
 
 - name: Add SplunkForwarder to Event Log Readers (required for Sysmon channel)
   ansible.windows.win_shell: |
     Add-LocalGroupMember -Group 'Event Log Readers' -Member 'NT SERVICE\SplunkForwarder' -ErrorAction SilentlyContinue
+  failed_when: false
 
 - name: Cold restart SplunkForwarder to pick up config and group membership
   ansible.windows.win_shell: |

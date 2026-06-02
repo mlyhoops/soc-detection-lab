@@ -1,2 +1,7 @@
-| comment "Detection SPL for T1486 — Data Encrypted for Impact"
-| comment "Query will be built and validated during the detection session."
+index=sysmon EventCode=11
+| bucket _time span=10s
+| stats count dc(TargetFilename) as unique_files values(TargetFilename) as files by _time, host, Image, ProcessId
+| where count > 50
+| eval window=strftime(_time,"%Y-%m-%d %H:%M:%S")
+| table window, host, Image, ProcessId, count, unique_files
+| sort - count

@@ -1,2 +1,8 @@
-| comment "Detection SPL for T1021.002 — SMB/Windows Admin Shares"
-| comment "Query will be built and validated during the detection session."
+index=wineventlog EventCode=4624
+    Logon_Type=3
+    NOT (Account_Name="*$" OR Account_Name="ANONYMOUS LOGON")
+| stats count dc(host) as targets values(host) as target_hosts min(_time) as first_seen by Account_Name, Source_Network_Address
+| where count > 3 OR targets > 1
+| eval first_seen=strftime(first_seen,"%Y-%m-%d %H:%M:%S")
+| table Account_Name, Source_Network_Address, count, targets, target_hosts, first_seen
+| sort - count
