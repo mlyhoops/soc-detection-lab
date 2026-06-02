@@ -30,7 +30,7 @@ resource "proxmox_virtual_environment_vm" "win11_01" {
   }
 
   cdrom {
-    file_id   = "local:iso/windows-11-enterprise.iso"
+    file_id   = "local:iso/windows-server-2022.iso"
     interface = "ide2"
   }
 
@@ -39,7 +39,7 @@ resource "proxmox_virtual_environment_vm" "win11_01" {
     model  = "e1000e"
   }
 
-  boot_order = ["ide2", "sata0"]
+  boot_order = ["sata0"]
 }
 
 resource "proxmox_virtual_environment_vm" "win11_02" {
@@ -74,7 +74,7 @@ resource "proxmox_virtual_environment_vm" "win11_02" {
   }
 
   cdrom {
-    file_id   = "local:iso/windows-11-enterprise.iso"
+    file_id   = "local:iso/windows-server-2022.iso"
     interface = "ide2"
   }
 
@@ -83,5 +83,5 @@ resource "proxmox_virtual_environment_vm" "win11_02" {
     model  = "e1000e"
   }
 
-  boot_order = ["ide2", "sata0"]
+  boot_order = ["sata0"]
 }

@@ -45,5 +45,5 @@ resource "proxmox_virtual_environment_vm" "dc01" {
     model  = "e1000e"
   }
 
-  boot_order = ["ide2", "sata0"]
+  boot_order = ["sata0"]
 }

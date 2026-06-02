@@ -3,9 +3,14 @@
 # Download from splunk.com (free account) and place at:
 #   ansible/roles/splunk_uf/files/splunkforwarder.msi
 
+- name: Ensure C:\Temp exists
+  ansible.windows.win_file:
+    path: C:\Temp
+    state: directory
+
 - name: Copy Splunk UF installer
   ansible.windows.win_copy:
-    src: splunkforwarder.msi
+    src: splunkforwarder-10.4.0-f798d4d49089-windows-x64.msi
     dest: C:\Temp\splunkforwarder.msi
 
 - name: Install Splunk Universal Forwarder
@@ -20,34 +25,46 @@
       AGREETOLICENSE=Yes
       /quiet
 
-- name: Wait for Splunk UF service to appear
-  ansible.windows.win_shell: |
-    $svc = Get-Service -Name SplunkForwarder -ErrorAction SilentlyContinue
-    if (-not $svc) { exit 1 }
+- name: Wait for SplunkForwarder service
+  ansible.windows.win_shell: Get-Service -Name SplunkForwarder -ErrorAction Stop
   retries: 10
   delay: 5
   register: uf_svc
   until: uf_svc.rc == 0
 
-- name: Configure Sysmon log forwarding
-  ansible.windows.win_shell: |
-    $inputs = "C:\Program Files\SplunkUniversalForwarder\etc\system\local\inputs.conf"
-    $content = @"
-[WinEventLog://Microsoft-Windows-Sysmon/Operational]
-index = sysmon
-disabled = false
-renderXml = true
-"@
-    Set-Content -Path $inputs -Value $content -Force
+- name: Write inputs.conf (Windows Event Logs + Sysmon)
+  ansible.windows.win_copy:
+    dest: 'C:\Program Files\SplunkUniversalForwarder\etc\system\local\inputs.conf'
+    content: |
+      [WinEventLog://Security]
+      index = wineventlog
+      disabled = false
 
-- name: Set forwarding target and restart
-  ansible.windows.win_shell: |
-    & "C:\Program Files\SplunkUniversalForwarder\bin\splunk.exe" add forward-server 192.168.0.53:9997 -auth admin:changeme
-    Restart-Service SplunkForwarder
-  failed_when: false
+      [WinEventLog://System]
+      index = wineventlog
+      disabled = false
 
-- name: Ensure SplunkForwarder starts on boot
+      [WinEventLog://Application]
+      index = wineventlog
+      disabled = false
+
+      [WinEventLog://Microsoft-Windows-Sysmon/Operational]
+      index = sysmon
+      disabled = false
+      renderXml = true
+
+- name: Add SplunkForwarder to Event Log Readers (required for Sysmon channel)
+  ansible.windows.win_shell: |
+    Add-LocalGroupMember -Group 'Event Log Readers' -Member 'NT SERVICE\SplunkForwarder' -ErrorAction SilentlyContinue
+
+- name: Cold restart SplunkForwarder to pick up config and group membership
+  ansible.windows.win_shell: |
+    Stop-Service SplunkForwarder -Force
+    Start-Sleep -Seconds 3
+    Start-Service SplunkForwarder
+  register: uf_restart
+
+- name: Ensure SplunkForwarder is set to auto-start
   ansible.windows.win_service:
     name: SplunkForwarder
     start_mode: auto
-    state: started

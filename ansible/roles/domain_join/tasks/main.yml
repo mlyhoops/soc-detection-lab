@@ -5,7 +5,7 @@
     Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses 10.10.10.10
 
 - name: Join domain
-  ansible.windows.win_domain_membership:
+  microsoft.ad.membership:
     dns_domain_name: lab.local
     domain_admin_user: "LAB\\Administrator"
     domain_admin_password: "{{ windows_admin_password }}"
