@@ -1,0 +1,62 @@
+---
+- name: Set static IP 10.10.10.250 via NetworkManager
+  ansible.builtin.shell: |
+    nmcli con mod "$(nmcli -t -f NAME con show | head -1)" \
+      ipv4.method manual \
+      ipv4.addresses 10.10.10.250/24 \
+      ipv4.gateway 10.10.10.1 \
+      ipv4.dns 10.10.10.10
+    nmcli con up "$(nmcli -t -f NAME con show | head -1)"
+  become: true
+
+- name: Ensure SSH is enabled and running
+  ansible.builtin.systemd:
+    name: ssh
+    state: started
+    enabled: true
+  become: true
+
+- name: Install PowerShell (required for Invoke-AtomicRedTeam)
+  ansible.builtin.shell: |
+    apt-get update -qq
+    apt-get install -y powershell 2>&1 | tail -5
+  become: true
+  register: pwsh_install
+  changed_when: "'newly installed' in pwsh_install.stdout"
+
+- name: Install Invoke-AtomicRedTeam
+  ansible.builtin.shell: |
+    pwsh -c "
+      Set-ExecutionPolicy Bypass -Scope CurrentUser -Force
+      Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+      Install-Module -Name invoke-atomicredteam,powershell-yaml -Scope CurrentUser -Force
+    "
+  become: false
+  register: art_install
+  changed_when: true
+
+- name: Download Atomic Red Team test definitions
+  ansible.builtin.shell: |
+    pwsh -c "
+      Import-Module invoke-atomicredteam
+      Invoke-AtomicTest All -GetPrereqs -ErrorAction SilentlyContinue
+    "
+  become: false
+  ignore_errors: true
+
+- name: Create attacker tools directory
+  ansible.builtin.file:
+    path: /home/kali/tools
+    state: directory
+    owner: kali
+    group: kali
+
+- name: Install common pentest tools for lab
+  ansible.builtin.apt:
+    name:
+      - crackmapexec
+      - nmap
+      - netcat-traditional
+      - python3-impacket
+    state: present
+  become: true

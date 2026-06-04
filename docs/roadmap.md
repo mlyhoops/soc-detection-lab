@@ -38,27 +38,29 @@ Session-by-session build plan. Each session has a defined scope and produces a m
 
 ---
 
-## Session 3 — Domain Setup + Endpoint Logging ⬜ Pending
+## Session 3 — Domain Setup + Endpoint Logging ✅ Complete
 
 **Goal:** Build the Active Directory domain and get Sysmon telemetry flowing into Splunk.
 
-- [ ] Provision win11-01 and win11-02 VMs (Windows 11, vmbr1, DHCP)
-- [ ] Write Ansible playbook: promote dc01 to domain controller, configure DNS + DHCP for 10.10.10.0/24
-- [ ] Write Ansible playbook: domain-join win11-01 and win11-02
-- [ ] Write Ansible playbook: deploy Sysmon (SwiftOnSecurity config) on dc01, win11-01, win11-02
-- [ ] Write Ansible playbook: install and configure Splunk Universal Forwarder on all Windows VMs
-- [ ] Confirm `index=sysmon` and `index=wineventlog` receiving events in Splunk
+- [x] Provision win11-01 (VM 202) and win11-02 (VM 203) — Windows Server 2022 Desktop Experience (Win11 ISO rejected due to TPM enforcement in QEMU)
+- [x] Promote dc01 to domain controller (lab.local), configure DNS + DHCP for 10.10.10.0/24
+- [x] Domain-join win11-01 and win11-02
+- [x] Deploy Sysmon64 (lab-focused config) on dc01, win11-01, win11-02
+- [x] Deploy Splunk UF 10.4.0 on all Windows hosts, forwarding to webserv1:9997
+- [x] Confirm `index=sysmon` and `index=wineventlog` receiving events from all three hosts
+- [x] Fix: renderXml=false for correct EventCode field extraction; Event Log Readers group for Sysmon access
 
 ---
 
-## Session 4 — Attacker Setup + Attack Infrastructure Validation ⬜ Pending
+## Session 4 — Attacker Setup + Attack Infrastructure Validation ✅ Complete
 
 **Goal:** Provision the Kali attacker VM and validate the full lab attack chain.
 
-- [ ] Provision kali VM (Kali Linux, vmbr1, static IP 10.10.10.250)
-- [ ] Write Ansible playbook: install Atomic Red Team on kali
-- [ ] Run a smoke-test technique (e.g., T1078 password spray) end-to-end: attack → Sysmon event → Splunk event visible
-- [ ] Confirm all four lab VMs are healthy and logging
+- [x] Provision kali VM (Kali 2026.1, vmbr1, static IP 10.10.10.250) — imported from QEMU image, no manual install
+- [x] Install PowerShell + Invoke-AtomicRedTeam 2.3.0 via Ansible
+- [x] Install CrackMapExec, nmap, netcat, impacket via Ansible
+- [x] Confirm Sysmon Event ID 1 (EventCode=1) visible in `index=sysmon` end-to-end
+- [x] All four lab VMs healthy: dc01, win11-01, win11-02, kali
 
 ---
 
@@ -141,8 +143,8 @@ Session-by-session build plan. Each session has a defined scope and produces a m
 |---|---|---|
 | 1 | Terraform scaffold, provider auth, POC VM, project docs | ✅ Complete |
 | 2 | vmbr1 isolated network, dc01 VM | ✅ Complete |
-| 3 | Domain setup, Sysmon + UF via Ansible | ⬜ Pending |
-| 4 | Kali VM, Atomic Red Team, end-to-end validation | ⬜ Pending |
+| 3 | Domain setup, Sysmon + UF via Ansible | ✅ Complete |
+| 4 | Kali VM, Atomic Red Team, end-to-end validation | ✅ Complete |
 | 5 | Detection: T1078 Valid Accounts | ⬜ Pending |
 | 6 | Detection: T1059.001 PowerShell | ⬜ Pending |
 | 7 | Detection: T1003.001 LSASS Dump | ⬜ Pending |

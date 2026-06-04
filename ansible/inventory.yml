@@ -14,3 +14,10 @@ all:
       children:
         domain_controllers:
         workstations:
+    kali:
+      hosts:
+        kali:
+          ansible_host: 10.10.10.250
+          ansible_user: kali
+          ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+          ansible_become_password: kali

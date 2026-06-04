@@ -25,3 +25,9 @@
   tags: [splunk_uf]
   roles:
     - splunk_uf
+
+- name: Configure Kali attacker VM
+  hosts: kali
+  tags: [kali_setup]
+  roles:
+    - kali_setup
